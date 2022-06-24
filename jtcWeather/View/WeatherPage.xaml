@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="jtcWeather.View.WeatherPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:jtcWeather.Converters"
+    xmlns:fonthelper="clr-namespace:jtcWeather.Helpers"
+    xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+    xmlns:vm="clr-namespace:jtcWeather.ViewModel"
+    Title="{Binding Title}"
+    ios:Page.UseSafeArea="True">
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:FarenheitToCelsiusConverter x:Key="FarenheitToCelsiusConverter" />
+            <converters:DegreesToDirectionConverter x:Key="DegreesToDirectionConverter" />
+            <converters:LongToDateTimeConverter x:Key="LongToDateTimeConverter" />
+            <converters:LongToTimeConverter x:Key="LongToTimeConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <ScrollView Orientation="Vertical">
+        <VerticalStackLayout Padding="10">
+
+            <!--  Select Current Location or Enter City Name  -->
+            <Frame
+                Padding="10,0,0,0"
+                HeightRequest="80"
+                Style="{StaticResource SearchCard}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="0.55*" />
+                        <ColumnDefinition Width="0.3*" />
+                        <ColumnDefinition Width="40" />
+                    </Grid.ColumnDefinitions>
+                    <ImageButton
+                        x:Name="btnCurrentLocation"
+                        Grid.Column="0"
+                        BackgroundColor="Transparent"
+                        Command="{Binding GetCurrentLocationCommand}"
+                        HorizontalOptions="Start"
+                        IsEnabled="{Binding IsNotBusy}"
+                        VerticalOptions="Center">
+                        <ImageButton.Source>
+                            <FontImageSource
+                                FontFamily="MaterialIcons"
+                                Glyph="{x:Static fonthelper:IconFont.Gps_fixed}"
+                                Color="{StaticResource Primary}" />
+                        </ImageButton.Source>
+                    </ImageButton>
+
+                    <Entry
+                        x:Name="entryCityName"
+                        Grid.Column="1"
+                        IsEnabled="{Binding IsNotBusy}"
+                        Placeholder="Enter Location"
+                        Style="{StaticResource BaseEntry}"
+                        Text="{Binding CityName}"
+                        VerticalOptions="Center" />
+
+                    <Button
+                        x:Name="btnGetWeather"
+                        Grid.Column="2"
+                        Command="{Binding GetWeatherCommand}"
+                        Style="{StaticResource btnOutline}"
+                        Text="Get Weather"
+                        VerticalOptions="Center"
+                        WidthRequest="120" />
+
+                    <ImageButton
+                        x:Name="btnFavourites"
+                        Grid.Column="3"
+                        BackgroundColor="Transparent"
+                        Command="{Binding SelectFromFavouritesCommand}"
+                        HorizontalOptions="End"
+                        IsEnabled="{Binding IsNotBusy}"
+                        VerticalOptions="Center">
+                        <ImageButton.Source>
+                            <FontImageSource
+                                FontFamily="MaterialIcons"
+                                Glyph="{x:Static fonthelper:IconFont.More_vert}"
+                                Color="{StaticResource Primary}" />
+                        </ImageButton.Source>
+                    </ImageButton>
+                </Grid>
+            </Frame>
+            <Label
+                x:Name="lblCity"
+                HeightRequest="2"
+                IsVisible="false"
+                Style="{StaticResource SmallLabel}"
+                Text="{Binding Favourite.Item}" />
+
+
+
+            <CollectionView ItemsSource="{Binding WeatherList}">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <VerticalStackLayout Padding="0,10,0,0" Spacing="5">
+                            <!--  CURRENT WEATHER CONDITIONS  -->
+                            <Frame
+                                Margin="0,10,0,0"
+                                Padding="10,5,10,5"
+                                CornerRadius="20"
+                                HorizontalOptions="Center"
+                                Style="{StaticResource ResultsCard}">
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Label
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        Style="{StaticResource CurrentCardlLabel}"
+                                        Text="{Binding Current.Temp, StringFormat='{0}°C', Converter={StaticResource FarenheitToCelsiusConverter}}"
+                                        TextColor="Black"
+                                        VerticalOptions="Center"
+                                        VerticalTextAlignment="Center" />
+                                    <Image
+                                        Grid.Row="0"
+                                        Grid.Column="1"
+                                        BackgroundColor="Transparent"
+                                        HeightRequest="80"
+                                        Source="{Binding Current.weather[0].Icon_Url}"
+                                        WidthRequest="80" />
+                                    <Label
+                                        Grid.Row="0"
+                                        Grid.Column="2"
+                                        Style="{StaticResource SmallLabel}"
+                                        Text="{Binding Current.weather[0].Description}"
+                                        TextColor="Black"
+                                        VerticalTextAlignment="Center" />
+                                    <!--  Wind Speed  -->
+                                    <HorizontalStackLayout
+                                        Grid.Row="1"
+                                        Grid.Column="0"
+                                        HorizontalOptions="Center"
+                                        Spacing="5"
+                                        VerticalOptions="Center">
+                                        <Image BackgroundColor="Transparent">
+                                            <Image.Source>
+                                                <FontImageSource
+                                                    FontFamily="MaterialIcons"
+                                                    Glyph="{x:Static fonthelper:IconFont.Air}"
+                                                    Size="20"
+                                                    Color="Blue" />
+                                            </Image.Source>
+                                        </Image>
+                                        <Label
+                                            HorizontalOptions="Center"
+                                            Style="{StaticResource SmallLabel}"
+                                            Text="{Binding Current.WindSpeed, StringFormat='{0} mph'}"
+                                            TextColor="Blue" />
+                                    </HorizontalStackLayout>
+                                    <!--  Wind Direction  -->
+                                    <HorizontalStackLayout
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        HorizontalOptions="Center"
+                                        Spacing="5"
+                                        VerticalOptions="Center">
+                                        <Image BackgroundColor="Transparent">
+                                            <Image.Source>
+                                                <FontImageSource
+                                                    FontFamily="MaterialIcons"
+                                                    Glyph="{x:Static fonthelper:IconFont.Explore}"
+                                                    Size="20"
+                                                    Color="Blue" />
+                                            </Image.Source>
+                                        </Image>
+                                        <Label
+                                            HorizontalOptions="Center"
+                                            Style="{StaticResource SmallLabel}"
+                                            Text="{Binding Current.WindDeg, StringFormat='{0}', Converter={StaticResource DegreesToDirectionConverter}}"
+                                            TextColor="Blue" />
+                                    </HorizontalStackLayout>
+                                    <!--  Humidity  -->
+                                    <HorizontalStackLayout
+                                        Grid.Row="1"
+                                        Grid.Column="2"
+                                        HorizontalOptions="Center"
+                                        Spacing="5"
+                                        VerticalOptions="Center">
+                                        <Image BackgroundColor="Transparent">
+                                            <Image.Source>
+                                                <FontImageSource
+                                                    FontFamily="MaterialIcons"
+                                                    Glyph="{x:Static fonthelper:IconFont.Water_drop}"
+                                                    Size="20"
+                                                    Color="Blue" />
+                                            </Image.Source>
+                                        </Image>
+                                        <Label
+                                            HorizontalOptions="Center"
+                                            Style="{StaticResource SmallLabel}"
+                                            Text="{Binding Current.Humidity, StringFormat='{0}%'}"
+                                            TextColor="Blue" />
+                                    </HorizontalStackLayout>
+                                    <!--  Air Pressure  -->
+                                    <HorizontalStackLayout
+                                        Grid.Row="2"
+                                        Grid.Column="0"
+                                        HorizontalOptions="Center"
+                                        Spacing="5"
+                                        VerticalOptions="Center">
+                                        <Image BackgroundColor="Transparent">
+                                            <Image.Source>
+                                                <FontImageSource
+                                                    FontFamily="MaterialIcons"
+                                                    Glyph="{x:Static fonthelper:IconFont.Unfold_less}"
+                                                    Size="20"
+                                                    Color="Blue" />
+                                            </Image.Source>
+                                        </Image>
+                                        <Label
+                                            HorizontalOptions="Center"
+                                            Style="{StaticResource SmallLabel}"
+                                            Text="{Binding Current.Pressure, StringFormat='{0} mBar'}"
+                                            TextColor="Blue" />
+                                    </HorizontalStackLayout>
+                                    <!--  Sunrise  -->
+                                    <HorizontalStackLayout
+                                        Grid.Row="2"
+                                        Grid.Column="1"
+                                        HorizontalOptions="Center"
+                                        Spacing="5"
+                                        VerticalOptions="Center">
+                                        <Image BackgroundColor="Transparent">
+                                            <Image.Source>
+                                                <FontImageSource
+                                                    FontFamily="MaterialIcons"
+                                                    Glyph="{x:Static fonthelper:IconFont.Sunny}"
+                                                    Size="20"
+                                                    Color="Yellow" />
+                                            </Image.Source>
+                                        </Image>
+                                        <Label
+                                            HorizontalOptions="Center"
+                                            Style="{StaticResource SmallLabel}"
+                                            Text="{Binding Source={RelativeSource AncestorType={x:Type vm:WeatherViewModel}}, Path=SunUp, StringFormat='{0}', Converter={StaticResource LongToTimeConverter}}"
+                                            TextColor="Blue" />
+                                    </HorizontalStackLayout>
+                                    <!--  Sunset  -->
+                                    <HorizontalStackLayout
+                                        Grid.Row="2"
+                                        Grid.Column="2"
+                                        HorizontalOptions="Center"
+                                        Spacing="5"
+                                        VerticalOptions="Center">
+                                        <Image BackgroundColor="Transparent">
+                                            <Image.Source>
+                                                <FontImageSource
+                                                    FontFamily="MaterialIcons"
+                                                    Glyph="{x:Static fonthelper:IconFont.Circle}"
+                                                    Size="20"
+                                                    Color="DarkGray" />
+                                            </Image.Source>
+                                        </Image>
+                                        <Label
+                                            HorizontalOptions="Center"
+                                            Style="{StaticResource SmallLabel}"
+                                            Text="{Binding Source={RelativeSource AncestorType={x:Type vm:WeatherViewModel}}, Path=SunDown, StringFormat='{0}', Converter={StaticResource LongToTimeConverter}}"
+                                            TextColor="Blue" />
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Frame>
+
+                            <!--  Next 48 Hours  -->
+                            <Label
+                                Margin="0,0,0,5"
+                                Style="{StaticResource LargelLabel}"
+                                Text="Next 48 Hours" />
+                            <CollectionView
+                                Margin="0,-10"
+                                ItemsLayout="HorizontalList"
+                                ItemsSource="{Binding Hourly}">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Frame
+                                            Margin="2,0"
+                                            Padding="5"
+                                            HeightRequest="80"
+                                            Style="{StaticResource ResultsCard}"
+                                            WidthRequest="60">
+                                            <Grid
+                                                Margin="0"
+                                                Padding="0"
+                                                RowSpacing="1">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Label
+                                                    HorizontalOptions="Center"
+                                                    Style="{StaticResource 48hrLabel}"
+                                                    Text="{Binding Dt, StringFormat='{0}', Converter={StaticResource LongToTimeConverter}}"
+                                                    VerticalOptions="Start" />
+                                                <Image
+                                                    Grid.Row="1"
+                                                    HeightRequest="40"
+                                                    HorizontalOptions="Center"
+                                                    Source="{Binding weather[0].Icon_Url}"
+                                                    VerticalOptions="Center"
+                                                    WidthRequest="40" />
+                                                <Label
+                                                    Grid.Row="2"
+                                                    HorizontalOptions="Center"
+                                                    Style="{StaticResource 48hrLabel}"
+                                                    Text="{Binding Temp, Converter={StaticResource FarenheitToCelsiusConverter}, StringFormat='{0}°C'}"
+                                                    VerticalOptions="End" />
+                                            </Grid>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+
+                            </CollectionView>
+
+                            <!--  Next 7 Days  -->
+                            <Label
+                                Margin="0,10,0,0"
+                                Style="{StaticResource LargelLabel}"
+                                Text="Next 7 Days" />
+                            <CollectionView
+                                HeightRequest="400"
+                                ItemsLayout="VerticalGrid, 2"
+                                ItemsSource="{Binding Daily}"
+                                VerticalScrollBarVisibility="Always">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Frame Margin="0,2" Style="{StaticResource ForecastCard}">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <Label
+                                                    HorizontalOptions="Start"
+                                                    Style="{StaticResource SmallLabel}"
+                                                    Text="{Binding date_time, StringFormat='{0:dd/MM/yyyy}'}"
+                                                    TextColor="{StaticResource LabelText}"
+                                                    VerticalOptions="Center" />
+                                                <Image
+                                                    Grid.Column="1"
+                                                    HeightRequest="60"
+                                                    HorizontalOptions="Center"
+                                                    Source="{Binding weather[0].Icon_Url}"
+                                                    VerticalOptions="Center"
+                                                    WidthRequest="60" />
+                                                <Label
+                                                    Grid.Column="2"
+                                                    HorizontalOptions="End"
+                                                    Style="{StaticResource SmallLabel}"
+                                                    Text="{Binding Temp.Day, StringFormat='{0}°C', Converter={StaticResource FarenheitToCelsiusConverter}}"
+                                                    TextColor="{StaticResource LabelText}"
+                                                    VerticalOptions="Center" />
+                                            </Grid>
+                                        </Frame>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                            <Label Style="{StaticResource BaseLabel}" Text="" />
+
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

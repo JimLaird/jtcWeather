@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="jtcWeather.View.FavouritesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:fonthelper="clr-namespace:jtcWeather.Helpers"
+    xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+    xmlns:model="clr-namespace:jtcWeather.Model"
+    xmlns:vm="clr-namespace:jtcWeather.ViewModel"
+    Title="FavouritesPage"
+    ios:Page.UseSafeArea="True">
+
+    <RefreshView x:DataType="vm:FavouritesViewModel" IsRefreshing="{Binding IsBusy}">
+
+        <VerticalStackLayout Padding="5">
+
+            <Grid
+                Padding="5"
+                ColumnSpacing="1"
+                RowSpacing="1">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Entry
+                    Placeholder="Enter Location"
+                    Style="{StaticResource BaseEntry}"
+                    Text="{Binding LocationText}" />
+
+                <Button
+                    Grid.Row="1"
+                    Command="{Binding AddNewCommand}"
+                    Style="{StaticResource btnOutline}"
+                    Text="Add To Favourites" />
+
+                <Label
+                    Grid.Row="2"
+                    Style="{StaticResource MediumLabel}"
+                    Text="{Binding StatusText}" />
+
+                <Button
+                    Grid.Row="3"
+                    Command="{Binding LoadAllCommand}"
+                    Style="{StaticResource btnOutline}"
+                    Text="Get All" />
+
+                <CollectionView
+                    Grid.Row="4"
+                    CanReorderItems="True"
+                    ItemsSource="{Binding Favourites}"
+                    SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="model:Favourite">
+                            <Frame
+                                Margin="0,5"
+                                HorizontalOptions="FillAndExpand"
+                                Style="{StaticResource FavouritesCard}">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FavouritesViewModel}}, Path=SelectedCommand}"
+                                        CommandParameter="{Binding .}"
+                                        NumberOfTapsRequired="1" />
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="40" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label
+                                        FontFamily="MulishSemiBold"
+                                        Style="{StaticResource MediumLabel}"
+                                        Text="{Binding Id}" />
+                                    <Label
+                                        Grid.Column="1"
+                                        FontFamily="MulishSemiBold"
+                                        FontSize="20"
+                                        Style="{StaticResource MediumLabel}"
+                                        Text="{Binding Item}" />
+                                    <ImageButton
+                                        Grid.Column="2"
+                                        BackgroundColor="Transparent"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FavouritesViewModel}}, Path=RemoveCommand}"
+                                        CommandParameter="{Binding .}"
+                                        HorizontalOptions="End"
+                                        VerticalOptions="Center">
+                                        <ImageButton.Source>
+                                            <FontImageSource
+                                                FontFamily="MaterialIcons"
+                                                Glyph="{x:Static fonthelper:IconFont.Delete}"
+                                                Size="20"
+                                                Color="{AppThemeBinding Light={StaticResource LabelText},
+                                                                        Dark={StaticResource LabelTextDark}}" />
+                                        </ImageButton.Source>
+                                    </ImageButton>
+                                </Grid>
+                            </Frame>
+
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </Grid>
+
+        </VerticalStackLayout>
+    </RefreshView>
+</ContentPage>
